@@ -1,6 +1,7 @@
 use std::process::Command;
 
 use chrono::{DateTime, FixedOffset};
+use cursive::{self, Cursive};
 
 fn main() {
     let output = Command::new("git")
@@ -15,6 +16,8 @@ fn main() {
         .map(get_last_commit_info)
         .collect();
     hashes.sort_by(|a, b| b.date.timestamp().cmp(&a.date.timestamp()));
+    let mut cursive = Cursive::new();
+    cursive.add_fullscreen_layer();
     println!(
         "{}",
         hashes
