@@ -6,6 +6,7 @@ use ratatui::prelude::{CrosstermBackend, Terminal};
 use std::io::{stdout, Result, Stdout};
 use ui::start_ui_loop;
 
+mod branches;
 mod ui;
 pub type App = Terminal<CrosstermBackend<Stdout>>;
 
