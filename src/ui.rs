@@ -1,13 +1,12 @@
-use std::{io::Result, process::Command, rc::Rc};
+use std::{io::Result, process::Command};
 
 use crossterm::event::{self, KeyCode, KeyEventKind};
 use ratatui::{
-    prelude::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style, Stylize},
+    prelude::{Constraint, Direction, Layout},
+    style::{Color, Modifier, Style},
     symbols,
     text::{Line, Span},
     widgets::{Block, Borders, LineGauge, List, ListItem, ListState, Paragraph},
-    Frame,
 };
 
 use crate::{
@@ -20,8 +19,23 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
     let mut selected_branch = &branches[0];
     let mut selected_items = vec![];
     let mut progress = 0.0;
-    let mut deleting = false;
+    let mut to_delete = false;
+    let author_email_command = Command::new("git")
+        .args(["config", "--global", "--get", "user.email"])
+        .output()
+        .expect("failed to run git config --global --get user.email");
+    let author_email =
+        String::from_utf8(author_email_command.stdout).expect("failed to parse git config command");
     loop {
+        if to_delete {
+            let initial_length = selected_items.len();
+            if let Some(branch) = selected_items.pop() {
+                delete_branch(branch, &author_email);
+                progress = 1.0 - (selected_items.len() as f64 / initial_length as f64);
+            } else {
+                break;
+            }
+        }
         app.draw(|frame| {
             let main_layout = Layout::default()
                 .direction(Direction::Vertical)
@@ -53,7 +67,7 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
             let paragraph = Paragraph::new(text);
             frame.render_stateful_widget(list, main_layout[0], &mut list_state);
             frame.render_widget(paragraph, main_layout[1]);
-            if deleting {
+            if to_delete {
                 let progress_bar = LineGauge::default()
                     .block(Block::default().borders(Borders::ALL).title("Progress"))
                     .gauge_style(
@@ -69,7 +83,7 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
         })?;
         if event::poll(std::time::Duration::from_millis(16))? {
             if let event::Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
+                if key.kind == KeyEventKind::Press && !to_delete {
                     match key.code {
                         KeyCode::Char('q') => break,
                         KeyCode::Char('j') => {
@@ -94,17 +108,7 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
                             }
                         }
                         KeyCode::Enter => {
-                            deleting = true;
-                            let author_email_command = Command::new("git")
-                                .args(["config", "--global", "--get", "user.email"])
-                                .output()
-                                .expect("failed to run git config --global --get user.email");
-                            let author_email = String::from_utf8(author_email_command.stdout)
-                                .expect("failed to parse git config command");
-                            for (i, branch) in selected_items.iter().enumerate() {
-                                delete_branch(branch, &author_email);
-                                progress = (i + 1) as f64 / selected_items.len() as f64;
-                            }
+                            to_delete = true;
                         }
                         _ => {}
                     }

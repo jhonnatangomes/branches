@@ -52,7 +52,7 @@ fn parse_branch(line: &str) -> Branch {
     }
 }
 
-pub fn delete_branch(branch: &Branch, author_email: &str) {
+pub fn delete_branch(branch: Branch, author_email: &str) {
     Command::new("git")
         .args(["branch", "-D", &branch.name])
         .output()
