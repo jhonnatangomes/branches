@@ -1,4 +1,4 @@
-use std::{io::Result, process::Command};
+use std::io::Result;
 
 use crossterm::event::{self, KeyCode, KeyEventKind};
 use ratatui::{
@@ -20,17 +20,11 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
     let mut selected_items = vec![];
     let mut progress = 0.0;
     let mut to_delete = false;
-    let author_email_command = Command::new("git")
-        .args(["config", "--global", "--get", "user.email"])
-        .output()
-        .expect("failed to run git config --global --get user.email");
-    let author_email =
-        String::from_utf8(author_email_command.stdout).expect("failed to parse git config command");
     loop {
         if to_delete {
             let initial_length = selected_items.len();
             if let Some(branch) = selected_items.pop() {
-                delete_branch(branch, &author_email);
+                delete_branch(branch);
                 progress = 1.0 - (selected_items.len() as f64 / initial_length as f64);
             } else {
                 break;
@@ -118,22 +112,6 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
     }
     Ok(())
 }
-
-// struct BranchesList {
-//     branches: Vec<Branch>,
-//     selected_branches: Vec<usize>,
-//     current_branch: usize,
-//     list: List<'_>,
-// }
-//
-// impl BranchesList {
-//     fn new() -> Self {
-//         Self {
-//             branches: get_current_branches(),
-//             selected_items: vec![],
-//         }
-//     }
-// }
 
 fn selected_branch_index(branches: &Vec<Branch>, selected_branch: &Branch) -> usize {
     branches
