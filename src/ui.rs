@@ -54,8 +54,9 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
                 .highlight_style(selected_branch_style(&selected_items, selected_branch))
                 .highlight_symbol(">>");
             let text = vec![
-                Line::from(Span::raw("Press j/k to navigate up and down\n")),
+                Line::from(Span::raw("Press j/k or ↑/↓ to navigate up and down\n")),
                 Line::from(Span::raw("Press space to select/deselect a branch\n")),
+                Line::from(Span::raw("Press enter to delete all selected branches\n")),
                 Line::from(Span::raw("Press q to quit\n")),
             ];
             let paragraph = Paragraph::new(text);
@@ -80,14 +81,14 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
                 if key.kind == KeyEventKind::Press && !to_delete {
                     match key.code {
                         KeyCode::Char('q') => break,
-                        KeyCode::Char('j') => {
+                        KeyCode::Char('j') | KeyCode::Down => {
                             let selected_branch_index =
                                 selected_branch_index(&branches, selected_branch);
                             let next_selected_branch_index =
                                 (selected_branch_index + 1) % branches.len();
                             selected_branch = &branches[next_selected_branch_index];
                         }
-                        KeyCode::Char('k') => {
+                        KeyCode::Char('k') | KeyCode::Up => {
                             let selected_branch_index =
                                 selected_branch_index(&branches, selected_branch);
                             let previous_selected_branch_index =
