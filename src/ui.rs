@@ -34,9 +34,9 @@ pub fn start_ui_loop(mut app: App) -> Result<()> {
             let main_layout = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Percentage(80),
-                    Constraint::Percentage(10),
-                    Constraint::Percentage(10),
+                    Constraint::Percentage(90),
+                    Constraint::Percentage(5),
+                    Constraint::Percentage(5),
                 ])
                 .split(frame.size());
             let items: Vec<_> = branches
